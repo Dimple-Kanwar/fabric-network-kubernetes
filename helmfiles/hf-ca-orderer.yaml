@@ -1,0 +1,56 @@
+environments:
+  {{ $.Environment.Name }}: {{ $envPrefix := printf "%v-" $.Environment.Name }}
+releases:
+  - name: {{ $envPrefix }}ca-orderer
+    chart: ../charts/hlf-ca
+    version: 0.1.0
+    namespace: {{ $.Namespace }}
+
+    values:
+      - fullnameOverride: ca-orderer-hlf-ca
+        nodeName: ca
+        orgName: orderer
+
+        maintenanceMode: false
+
+        image:
+          tag: 1.4.8
+
+        ingress:
+          enabled: false
+
+        persistence:
+          enabled: {{ eq .Values.useExternalDB "false" }}
+          storageClass: "standard"
+          accessMode: ReadWriteOnce
+          size: {{ .Values.caPersistenceSize }}
+
+        caName: ca-orderer
+
+        {{ if eq .Values.useExternalDB "true" }}
+        externalDatabase:
+          type: postgres
+          host: {{ .Values.ordererCADBHost }}
+          port: 5432
+          username: root
+          password: db_password
+          database: fabric_ca
+        {{ end }}
+
+        adminUsername: admin
+        adminPassword: adminpw
+
+        config:
+          hlfToolsVersion: 1.4.8
+          debug: false
+          enableTLSWithoutIngress: true
+          useIssuedTLS: true
+          useIssuedCACert: true
+
+        csrHosts: ca-orderer,ca-orderer-hlf-ca,ca-orderer-hlf-ca.{{ $.Namespace }}.svc.cluster.local,localhost
+  
+    set:
+      - name: namespace
+        value: {{ $.Namespace }}
+
+    wait: true
