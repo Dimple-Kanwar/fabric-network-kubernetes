@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "hlf-ca.fullname" . }}
-  labels:
+  labels:  
 {{ include "labels.standard" . | indent 4 }}
 spec:
   replicas: 1
@@ -97,6 +97,22 @@ spec:
             - configMapRef:
                 name: {{ include "hlf-ca.fullname" . }}--ca
           env:
+            {{- if .Values.postgresql.enabled}}
+            # PostgreSQL Database
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "postgresql.fullname" . }}
+                  key: postgresql-password
+            {{- end }}
+            {{- if .Values.mysql.enabled }}
+            # MySQL Database
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "mysql.fullname" . }}
+                  key: mysql-password
+            {{- end }}
             {{- if .Values.externalDatabase.type }}
             # External Database
             - name: DB_PASSWORD

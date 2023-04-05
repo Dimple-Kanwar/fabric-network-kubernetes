@@ -1,7 +1,8 @@
 environments:
   {{ $.Environment.Name }}: {{ $envPrefix := printf "%v-" $.Environment.Name }}
+---
 releases:
-  - name: {{ $envPrefix }}ca-orderer
+  - name: {{ $.Environment.Name }}-ca-orderer
     chart: ../charts/hlf-ca
     version: 0.1.0
     namespace: {{ $.Namespace }}
