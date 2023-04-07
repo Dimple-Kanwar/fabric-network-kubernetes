@@ -2,13 +2,13 @@ environments:
   {{ $.Environment.Name }}: {{ $envPrefix := printf "%v-" $.Environment.Name }}
 ---
 releases:
-  - name: {{ $.Environment.Name }}-ca-orderer
-    chart: ../charts/hlf-ca
+  - name: {{ $.Environment.Name }}-{{ .Values.caName }}
+    chart: ../hlf-ca
     version: 0.1.0
     namespace: {{ $.Namespace }}
 
     values:
-      - fullnameOverride: ca-orderer-hlf-ca
+      - fullnameOverride: {{ .Values.caName }}-hlf-ca
         nodeName: ca
         orgName: orderer
 
@@ -22,11 +22,11 @@ releases:
 
         persistence:
           enabled: {{ eq .Values.useExternalDB "false" }}
-          storageClass: "standard"
+          storageClass: ""
           accessMode: ReadWriteOnce
           size: {{ .Values.caPersistenceSize }}
 
-        caName: ca-orderer
+        caName: {{ .Values.caName }}
 
         {{ if eq .Values.useExternalDB "true" }}
         externalDatabase:
@@ -38,17 +38,17 @@ releases:
           database: fabric_ca
         {{ end }}
 
-        adminUsername: admin
-        adminPassword: adminpw
+        adminUsername: {{ .Values.adminUsername }}
+        adminPassword: {{ .Values.adminPassword }}
 
         config:
           hlfToolsVersion: 1.4.8
-          debug: false
+          debug: {{ .Values.debug }}
           enableTLSWithoutIngress: true
           useIssuedTLS: true
           useIssuedCACert: true
 
-        csrHosts: ca-orderer,ca-orderer-hlf-ca,ca-orderer-hlf-ca.{{ $.Namespace }}.svc.cluster.local,localhost
+        csrHosts: {{ .Values.caName }},{{ .Values.caName }}-hlf-ca, {{ .Values.caName }}-hlf-ca.{{ $.Namespace }}.svc.cluster.local,localhost
   
     set:
       - name: namespace
